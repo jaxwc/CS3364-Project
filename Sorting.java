@@ -27,6 +27,20 @@ public class Sorting {
     return i + 1;
   }
 
+  public static void quickHybridSort(int[] arr, int low, int high, int k) {
+    if (low < high) {
+      int size = high - low + 1;
+
+      if (size <= k) {
+        insertionSort(arr, low, high);
+      } else {
+        int index = partition(arr, low, high);
+        quickHybridSort(arr, low, index - 1, k);
+        quickHybridSort(arr, index + 1, high, k);
+      }
+    }
+  }
+
   private static void swap(int[] arr, int i, int j) {
     if (i != j) {
       int temp = arr[i];
