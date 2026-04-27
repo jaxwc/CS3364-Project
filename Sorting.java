@@ -27,7 +27,12 @@ public class Sorting {
     return i + 1;
   }
 
-  public static void quickHybridSort(int[] arr, int low, int high, int k) {
+  public static void quickHybridSort(int[] arr, int k) {
+    if (arr == null || arr.length < 2) return;
+    quickHybridSortRecursive(arr, 0, arr.length - 1, k);
+  }
+
+  private static void quickHybridSortRecursive(int[] arr, int low, int high, int k) {
     if (low < high) {
       int size = high - low + 1;
 
@@ -35,8 +40,8 @@ public class Sorting {
         insertionSort(arr, low, high);
       } else {
         int index = partition(arr, low, high);
-        quickHybridSort(arr, low, index - 1, k);
-        quickHybridSort(arr, index + 1, high, k);
+        quickHybridSortRecursive(arr, low, index - 1, k);
+        quickHybridSortRecursive(arr, index + 1, high, k);
       }
     }
   }
