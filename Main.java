@@ -7,6 +7,7 @@ public class Main {
     runCorrectChecks();
     runEdgeCases();
     runRandomBenchmarks();
+    runComparisonBenchmarks();
   }
 
   public static int[] randomArray(int n, Random rng) {
@@ -96,5 +97,59 @@ public class Main {
     }
     writer.close();
     System.out.println("Wrote to benchmark_random.csv");
+  }
+
+  public static void runComparisonBenchmarks() throws IOException {
+    Random rng = new Random(456);
+
+    int[] nValues = {100, 500, 1000, 2000, 5000, 10000, 20000, 50000};
+    int trials = 20;
+    int optimalK = 20;
+
+    PrintWriter writer = new PrintWriter(new FileWriter("benchmark_compare.csv"));
+    writer.println("n,algorithm,avg_time_ms");
+
+    for (int n : nValues) {
+      long insertionNs = 0;
+      long quickNs = 0;
+      long hybridNs = 0;
+
+      for (int trial = 0; trial < trials; trial++) {
+        int[] arrInsertion = randomArray(n, rng);
+        int[] arrQuick = arrInsertion.clone();
+        int[] arrHybrid = arrInsertion.clone();
+        long start = System.nanoTime();
+        Sorting.insertionSort(arrInsertion, 0, n - 1);
+        insertionNs += System.nanoTime() - start;
+
+        start = System.nanoTime();
+        Sorting.quickHybridSort(arrQuick, 0);
+        quickNs += System.nanoTime() - start;
+
+        start = System.nanoTime();
+        Sorting.quickHybridSort(arrHybrid, optimalK);
+        hybridNs += System.nanoTime() - start;
+      }
+
+      double tInsertion = insertionNs / 1_000_000.0 / trials;
+      double tQuick = quickNs / 1_000_000.0 / trials;
+      double tHybrid = hybridNs / 1_000_000.0 / trials;
+
+      writer.println(n + ",InsertionSort," + tInsertion);
+      writer.println(n + ",Quicksort," + tQuick);
+      writer.println(n + ",Hybrid," + tHybrid);
+
+      System.out.println(
+          "n = "
+              + n
+              + ", insertion = "
+              + tInsertion
+              + ", quick = "
+              + tQuick
+              + ", hybrid = "
+              + tHybrid);
+    }
+    writer.close();
+    System.out.println("Wrote benchmark_compare.csv");
   }
 }
