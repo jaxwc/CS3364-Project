@@ -8,6 +8,8 @@ public class Main {
     runEdgeCases();
     runRandomBenchmarks();
     runComparisonBenchmarks();
+    runSortedBenchmarks();
+    runSortedComparisonBenchmarks();
   }
 
   public static int[] randomArray(int n, Random rng) {
@@ -151,5 +153,97 @@ public class Main {
     }
     writer.close();
     System.out.println("Wrote benchmark_compare.csv");
+  }
+
+  public static int[] sortedArray(int n) {
+    int[] arr = new int[n];
+    for (int i = 0; i < n; i++) {
+      arr[i] = i;
+    }
+    return arr;
+  }
+
+  public static void runSortedBenchmarks() throws IOException {
+    int[] nValues = {100, 500, 1000, 2000, 5000};
+    int[] kValues = {0, 1, 2, 5, 10, 15, 20, 30, 40, 50, 75, 100};
+    int trials = 20;
+
+    PrintWriter writer = new PrintWriter(new FileWriter("benchmark_sorted.csv"));
+    writer.println("n,k,avg_time_ms");
+
+    for (int n : nValues) {
+      for (int k : kValues) {
+        long totalTimeNs = 0;
+
+        for (int trial = 0; trial < trials; trial++) {
+          int[] arr = sortedArray(n);
+
+          long start = System.nanoTime();
+          Sorting.quickHybridSort(arr, k);
+          long end = System.nanoTime();
+          totalTimeNs += end - start;
+        }
+
+        double avgTimeMS = totalTimeNs / 1_000_000.0 / trials;
+
+        writer.println(n + "," + k + "," + avgTimeMS);
+        System.out.println("sorted n = " + n + ", k = " + k + ", avg ms = " + avgTimeMS);
+      }
+    }
+    writer.close();
+    System.out.println("Wrote to benchmark_sorted.csv");
+  }
+
+  public static void runSortedComparisonBenchmarks() throws IOException {
+    int[] nValues = {100, 500, 1000, 2000, 5000};
+    int trials = 20;
+    int optimalK = 20;
+
+    PrintWriter writer = new PrintWriter(new FileWriter("benchmark_compare_sorted.csv"));
+    writer.println("n,algorithm,avg_time_ms");
+
+    for (int n : nValues) {
+      long insertionNs = 0;
+      long quickNs = 0;
+      long hybridNs = 0;
+
+      for (int trial = 0; trial < trials; trial++) {
+        int[] arrInsertion = sortedArray(n);
+        int[] arrQuick = arrInsertion.clone();
+        int[] arrHybrid = arrInsertion.clone();
+
+        long start = System.nanoTime();
+        Sorting.insertionSort(arrInsertion, 0, n - 1);
+        insertionNs += System.nanoTime() - start;
+
+        start = System.nanoTime();
+        Sorting.quickHybridSort(arrQuick, 0);
+        quickNs += System.nanoTime() - start;
+
+        start = System.nanoTime();
+        Sorting.quickHybridSort(arrHybrid, optimalK);
+        hybridNs += System.nanoTime() - start;
+      }
+
+      double tInsertion = insertionNs / 1_000_000.0 / trials;
+      double tQuick = quickNs / 1_000_000.0 / trials;
+      double tHybrid = hybridNs / 1_000_000.0 / trials;
+
+      writer.println(n + ",InsertionSort," + tInsertion);
+      writer.println(n + ",Quicksort," + tQuick);
+      writer.println(n + ",Hybrid," + tHybrid);
+
+      System.out.println(
+          "sorted n = "
+              + n
+              + ", insertion = "
+              + tInsertion
+              + ", quick = "
+              + tQuick
+              + ", hybrid = "
+              + tHybrid);
+    }
+    writer.close();
+    System.out.println("Wrote benchmark_compare_sorted.csv");
   }
 }
