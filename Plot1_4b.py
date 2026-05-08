@@ -10,7 +10,7 @@ for algo, group in df.groupby("algorithm"):
 
 plt.xlabel("n (array size)")
 plt.ylabel("Average runtime (ms)")
-plt.title("Algorithm comparison (sorted input, 20 trials)")
+plt.title("Algorithm comparison (sorted input, hybrid K=100)")
 plt.legend()
 plt.grid(True, alpha=0.3, which="both")
 plt.yscale("log")

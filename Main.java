@@ -3,6 +3,14 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class Main {
+  private static final int[] RANDOM_N_VALUES = {100, 500, 1000, 2000, 5000, 10000, 20000, 50000};
+  private static final int[] SORTED_N_VALUES = {100, 500, 1000, 2000, 5000};
+  private static final int[] K_VALUES = {0, 1, 2, 5, 10, 15, 20, 30, 40, 50, 75, 100};
+  private static final int TRIALS = 20;
+
+  private static final int RANDOM_OPTIMAL_K = 50;
+  private static final int SORTED_OPTIMAL_K = 100;
+
   public static void main(String[] args) throws IOException {
     runCorrectChecks();
     runEdgeCases();
@@ -16,6 +24,14 @@ public class Main {
     int[] arr = new int[n];
     for (int i = 0; i < n; i++) {
       arr[i] = rng.nextInt(10000);
+    }
+    return arr;
+  }
+
+  public static int[] sortedArray(int n) {
+    int[] arr = new int[n];
+    for (int i = 0; i < n; i++) {
+      arr[i] = i;
     }
     return arr;
   }
@@ -71,18 +87,14 @@ public class Main {
   public static void runRandomBenchmarks() throws IOException {
     Random rng = new Random(123);
 
-    int[] nValues = {1000, 5000, 10000, 50000, 100000};
-    int[] kValues = {0, 1, 2, 5, 10, 15, 20, 30, 40, 50, 75, 100};
-    int trials = 20;
-
     PrintWriter writer = new PrintWriter(new FileWriter("benchmark_random.csv"));
     writer.println("n,k,avg_time_ms");
 
-    for (int n : nValues) {
-      for (int k : kValues) {
+    for (int n : RANDOM_N_VALUES) {
+      for (int k : K_VALUES) {
         long totalTimeNs = 0;
 
-        for (int trial = 0; trial < trials; trial++) {
+        for (int trial = 0; trial < TRIALS; trial++) {
           int[] arr = randomArray(n, rng);
 
           long start = System.nanoTime();
@@ -91,7 +103,7 @@ public class Main {
           totalTimeNs += end - start;
         }
 
-        double avgTimeMS = totalTimeNs / 1_000_000.0 / trials;
+        double avgTimeMS = totalTimeNs / 1_000_000.0 / TRIALS;
 
         writer.println(n + "," + k + "," + avgTimeMS);
         System.out.println("n = " + n + ", k = " + k + ", avg ms = " + avgTimeMS);
@@ -104,19 +116,15 @@ public class Main {
   public static void runComparisonBenchmarks() throws IOException {
     Random rng = new Random(456);
 
-    int[] nValues = {100, 500, 1000, 2000, 5000, 10000, 20000, 50000};
-    int trials = 20;
-    int optimalK = 20;
-
     PrintWriter writer = new PrintWriter(new FileWriter("benchmark_compare.csv"));
-    writer.println("n,algorithm,avg_time_ms");
+    writer.println("n,algorithm,k,avg_time_ms");
 
-    for (int n : nValues) {
+    for (int n : RANDOM_N_VALUES) {
       long insertionNs = 0;
       long quickNs = 0;
       long hybridNs = 0;
 
-      for (int trial = 0; trial < trials; trial++) {
+      for (int trial = 0; trial < TRIALS; trial++) {
         int[] arrInsertion = randomArray(n, rng);
         int[] arrQuick = arrInsertion.clone();
         int[] arrHybrid = arrInsertion.clone();
@@ -129,17 +137,17 @@ public class Main {
         quickNs += System.nanoTime() - start;
 
         start = System.nanoTime();
-        Sorting.quickHybridSort(arrHybrid, optimalK);
+        Sorting.quickHybridSort(arrHybrid, RANDOM_OPTIMAL_K);
         hybridNs += System.nanoTime() - start;
       }
 
-      double tInsertion = insertionNs / 1_000_000.0 / trials;
-      double tQuick = quickNs / 1_000_000.0 / trials;
-      double tHybrid = hybridNs / 1_000_000.0 / trials;
+      double tInsertion = insertionNs / 1_000_000.0 / TRIALS;
+      double tQuick = quickNs / 1_000_000.0 / TRIALS;
+      double tHybrid = hybridNs / 1_000_000.0 / TRIALS;
 
-      writer.println(n + ",InsertionSort," + tInsertion);
-      writer.println(n + ",Quicksort," + tQuick);
-      writer.println(n + ",Hybrid," + tHybrid);
+      writer.println(n + ",InsertionSort,NA," + tInsertion);
+      writer.println(n + ",Quicksort,0," + tQuick);
+      writer.println(n + ",Hybrid," + RANDOM_OPTIMAL_K + "," + tHybrid);
 
       System.out.println(
           "n = "
@@ -148,6 +156,8 @@ public class Main {
               + tInsertion
               + ", quick = "
               + tQuick
+              + ", hybrid K = "
+              + RANDOM_OPTIMAL_K
               + ", hybrid = "
               + tHybrid);
     }
@@ -155,27 +165,16 @@ public class Main {
     System.out.println("Wrote benchmark_compare.csv");
   }
 
-  public static int[] sortedArray(int n) {
-    int[] arr = new int[n];
-    for (int i = 0; i < n; i++) {
-      arr[i] = i;
-    }
-    return arr;
-  }
-
   public static void runSortedBenchmarks() throws IOException {
-    int[] nValues = {100, 500, 1000, 2000, 5000};
-    int[] kValues = {0, 1, 2, 5, 10, 15, 20, 30, 40, 50, 75, 100};
-    int trials = 20;
 
     PrintWriter writer = new PrintWriter(new FileWriter("benchmark_sorted.csv"));
     writer.println("n,k,avg_time_ms");
 
-    for (int n : nValues) {
-      for (int k : kValues) {
+    for (int n : SORTED_N_VALUES) {
+      for (int k : K_VALUES) {
         long totalTimeNs = 0;
 
-        for (int trial = 0; trial < trials; trial++) {
+        for (int trial = 0; trial < TRIALS; trial++) {
           int[] arr = sortedArray(n);
 
           long start = System.nanoTime();
@@ -184,7 +183,7 @@ public class Main {
           totalTimeNs += end - start;
         }
 
-        double avgTimeMS = totalTimeNs / 1_000_000.0 / trials;
+        double avgTimeMS = totalTimeNs / 1_000_000.0 / TRIALS;
 
         writer.println(n + "," + k + "," + avgTimeMS);
         System.out.println("sorted n = " + n + ", k = " + k + ", avg ms = " + avgTimeMS);
@@ -195,19 +194,15 @@ public class Main {
   }
 
   public static void runSortedComparisonBenchmarks() throws IOException {
-    int[] nValues = {100, 500, 1000, 2000, 5000};
-    int trials = 20;
-    int optimalK = 20;
-
     PrintWriter writer = new PrintWriter(new FileWriter("benchmark_compare_sorted.csv"));
-    writer.println("n,algorithm,avg_time_ms");
+    writer.println("n,algorithm,k,avg_time_ms");
 
-    for (int n : nValues) {
+    for (int n : SORTED_N_VALUES) {
       long insertionNs = 0;
       long quickNs = 0;
       long hybridNs = 0;
 
-      for (int trial = 0; trial < trials; trial++) {
+      for (int trial = 0; trial < TRIALS; trial++) {
         int[] arrInsertion = sortedArray(n);
         int[] arrQuick = arrInsertion.clone();
         int[] arrHybrid = arrInsertion.clone();
@@ -221,17 +216,17 @@ public class Main {
         quickNs += System.nanoTime() - start;
 
         start = System.nanoTime();
-        Sorting.quickHybridSort(arrHybrid, optimalK);
+        Sorting.quickHybridSort(arrHybrid, SORTED_OPTIMAL_K);
         hybridNs += System.nanoTime() - start;
       }
 
-      double tInsertion = insertionNs / 1_000_000.0 / trials;
-      double tQuick = quickNs / 1_000_000.0 / trials;
-      double tHybrid = hybridNs / 1_000_000.0 / trials;
+      double tInsertion = insertionNs / 1_000_000.0 / TRIALS;
+      double tQuick = quickNs / 1_000_000.0 / TRIALS;
+      double tHybrid = hybridNs / 1_000_000.0 / TRIALS;
 
-      writer.println(n + ",InsertionSort," + tInsertion);
-      writer.println(n + ",Quicksort," + tQuick);
-      writer.println(n + ",Hybrid," + tHybrid);
+      writer.println(n + ",InsertionSort,NA," + tInsertion);
+      writer.println(n + ",Quicksort,0," + tQuick);
+      writer.println(n + ",Hybrid," + SORTED_OPTIMAL_K + "," + tHybrid);
 
       System.out.println(
           "sorted n = "
@@ -240,6 +235,8 @@ public class Main {
               + tInsertion
               + ", quick = "
               + tQuick
+              + ", hybrid K = "
+              + SORTED_OPTIMAL_K
               + ", hybrid = "
               + tHybrid);
     }
